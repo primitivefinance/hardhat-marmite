@@ -1,0 +1,7 @@
+/cache
+/typechain
+/artifacts
+/dist
+/node_modules
+.vscode
+.env
