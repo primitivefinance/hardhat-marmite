@@ -57,29 +57,11 @@ export default async function marmite(
   hre.config.paths.cache = path.join(process.cwd(), '.gas', 'cache');
 
   const table = new Table({
-    /* chars: {
-      top: '-',
-      'top-mid': '+',
-      'top-left': '+',
-      'top-right': '+',
-      bottom: '-',
-      'bottom-mid': '+',
-      'bottom-left': '+',
-      'bottom-right': '+',
-      left: '|',
-      'left-mid': '|',
-      mid: '-',
-      'mid-mid': '|',
-      right: '|',
-      'right-mid': '|',
-      middle: '|',
-    }, */
     rowHeights: [3],
     rowAligns: ['center'],
     style: {
       'padding-left': 4,
       'padding-right': 4,
-      // compact: true,
     },
     colAligns: ['center'],
   });
