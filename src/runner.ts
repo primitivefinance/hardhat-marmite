@@ -1,3 +1,8 @@
+/**
+ * Runs a script from a file
+ * @param scriptPath Path to the script to run
+ * @returns Nothing
+ */
 export default async function runScript(
   scriptPath: string,
 ): Promise<void> {
