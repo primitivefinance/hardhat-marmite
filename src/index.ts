@@ -6,44 +6,30 @@ import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { task } from 'hardhat/config';
 import fg from 'fast-glob';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { ContractTransaction } from 'ethers';
 import Table from 'cli-table3';
 import colors from 'colors';
+import { ContractTransaction } from 'ethers';
+import { TransactionResponse } from '@ethersproject/abstract-provider';
 
+import { ScriptFunction, GasReport } from './types';
 import runScript from './runner';
+import { checkMinOrMax } from './utils';
 
-type FlagFunction = (name: string, tx: ContractTransaction) => void;
-type ScriptFunction = (flag: FlagFunction) => void;
-
-task('marmite', 'Gas optimizoooor')
-  .addParam('script', 'Script to run')
+task('marmite', 'Run gas cost comparisons among different Solidity code snippets')
+  .addParam('script', 'Path to the script to run')
   .setAction(async (args) => {
     await runScript(args.script);
   });
 
-type GasReport = {
-  [key: string]: number[];
-}
-
-function checkMinOrMax(values: number[], value: number): Table.Cell {
-  if (Math.max(...values) === value) {
-    return {
-      content: colors.red(value.toString()),
-    };
-  }
-
-  if (Math.min(...values) === value) {
-    return {
-      content: colors.green(value.toString()),
-    };
-  }
-
-  return value.toString().dim;
-}
-
+/**
+ * Marmite context function
+ * @param hre Hardhat global variable
+ * @param implementations Array of implementations to compare
+ * @param script Function deploying contracts and flagging transactions
+ */
 export default async function marmite(
   hre: HardhatRuntimeEnvironment,
-  recipes: string[],
+  implementations: string[],
   script: ScriptFunction,
 ): Promise<void> {
   const entries = await fg('contracts/**/*.sol', {
@@ -68,8 +54,8 @@ export default async function marmite(
 
   const gasReport: GasReport = {};
 
-  for (let i = 0; i < recipes.length; i += 1) {
-    const currentRecipe = recipes[i];
+  for (let i = 0; i < implementations.length; i += 1) {
+    const currentImplementation = implementations[i];
 
     await fs.promises.rm('.gas', {
       recursive: true,
@@ -85,12 +71,12 @@ export default async function marmite(
       let newSource: string = source;
 
       for (let k = 0; k < matches.length; k += 1) {
-        if (matches[k].includes(currentRecipe) === false) {
+        if (matches[k].includes(currentImplementation) === false) {
           newSource = newSource.replace(matches[k], '');
         }
       }
 
-      newSource = newSource.replace(`@start:${currentRecipe}`, '');
+      newSource = newSource.replace(`@start:${currentImplementation}`, '');
       newSource = newSource.replace('@end', '');
 
       await fs.promises.mkdir(path.join('.gas', path.dirname(entries[j])), {
@@ -104,7 +90,7 @@ export default async function marmite(
 
     await hre.run(TASK_COMPILE);
 
-    await script(async (name: string, tx: ContractTransaction) => {
+    await script(async (name: string, tx: ContractTransaction | TransactionResponse) => {
       const receipt = await tx.wait();
       if (gasReport[name] === undefined) gasReport[name] = [];
       gasReport[name].push(receipt.cumulativeGasUsed.toNumber());
@@ -115,14 +101,14 @@ export default async function marmite(
     [
       '',
       {
-        content: `🥘 ${'Recipes'.magenta.bold}`,
-        colSpan: recipes.length,
+        content: `🥘 ${'Implementations'.magenta.bold}`,
+        colSpan: implementations.length,
         hAlign: 'center',
       },
     ],
     [
       { content: colors.bold('🚩 Flags'.blue), colSpan: 1 },
-      ...recipes.map((recipe) => colors.bold(recipe.magenta)),
+      ...implementations.map((impl) => colors.bold(impl.magenta)),
     ],
     [
       Object.keys(gasReport)[0].blue,
@@ -138,6 +124,7 @@ export default async function marmite(
   );
 
   console.log(table.toString());
+  console.log(table);
 
   await fs.promises.rm('.gas', {
     recursive: true,
