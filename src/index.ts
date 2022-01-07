@@ -32,13 +32,15 @@ export default async function marmite(
   implementations: string[],
   script: ScriptFunction,
 ): Promise<void> {
-  const entries = await fg('contracts/**/*.sol', {
+  const entries = await fg('**/*.sol', {
     absolute: false,
     onlyFiles: true,
   });
 
+  const sources = path.relative(process.cwd(), hre.config.paths.sources);
+
   hre.config.paths.root = path.join(process.cwd(), '.gas');
-  hre.config.paths.sources = path.join(process.cwd(), '.gas', 'contracts');
+  hre.config.paths.sources = path.join(process.cwd(), '.gas', sources);
   hre.config.paths.artifacts = path.join(process.cwd(), '.gas', 'artifacts');
   hre.config.paths.cache = path.join(process.cwd(), '.gas', 'cache');
 
@@ -124,7 +126,6 @@ export default async function marmite(
   );
 
   console.log(table.toString());
-  console.log(table);
 
   await fs.promises.rm('.gas', {
     recursive: true,
