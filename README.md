@@ -4,7 +4,7 @@
 
 > Gas-golfing Hardhat plugin to run gas cost comparisons among different Solidity code snippets.
 
-![Demo](https://i.imgur.com/kE2T0vK.gif)
+![Demo](./demo.gif)
 
 ## 🧩 Features
 
