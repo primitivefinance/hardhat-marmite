@@ -2,7 +2,9 @@
 
 ![version](https://img.shields.io/npm/v/@primitivefi/hardhat-marmite) ![npm](https://img.shields.io/npm/dt/@primitivefi/hardhat-marmite) ![license](https://img.shields.io/npm/l/@primitivefi/hardhat-marmite) ![stars](https://img.shields.io/github/stars/primitivefinance/hardhat-marmite?style=social&color=%23FFB31A)
 
-Flexible Hardhat plugin to run gas cost comparisons among different Solidity code snippets.
+> Gas-golfing Hardhat plugin to run gas cost comparisons among different Solidity code snippets.
+
+![Demo](https://i.imgur.com/kE2T0vK.gif)
 
 ## 🧩 Features
 
@@ -126,14 +128,8 @@ Marmite will then compile your contracts, deploy them and measure your flagged t
 
 ![Results](https://i.imgur.com/YMlQcVF.png)
 
-## 🖼 Examples
-
-If you are looking for examples, check out:
-- How to compare an if condition (Contract file here and deployment script here)
-- How to compare
-
 ## ⛑ Help
 
 Feel free to open an issue if you need help or if you encounter a problem! Here are some already known problems though:
-- Naming a flag `constructor` might create a JavaScript issue, thus avoid writing `await flag('constructor', tx);` for now
+- Naming a flag `constructor` might create a JavaScript issue, thus avoid writing `await flag('constructor', tx);`
 - Compiling your contracts using `npx hardhat compile` might not work if Marmite tags are still present in your code
