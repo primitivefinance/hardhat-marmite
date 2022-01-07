@@ -1,15 +1,15 @@
 # 🥘 Marmite
 
-![version](https://img.shields.io/npm/v/@primitivefi/hardhat-marmite) ![npm](https://img.shields.io/npm/dt/@primitivefi/hardhat-marmite) ![license](https://img.shields.io/npm/l/@primitivefi/hardhat-marmite)
+![version](https://img.shields.io/npm/v/@primitivefi/hardhat-marmite) ![npm](https://img.shields.io/npm/dt/@primitivefi/hardhat-marmite) ![license](https://img.shields.io/npm/l/@primitivefi/hardhat-marmite) ![stars](https://img.shields.io/github/stars/primitivefinance/hardhat-marmite?style=social&color=%23FFB31A)
 
 Flexible Hardhat plugin to run gas cost comparisons among different Solidity code snippets.
+
+## 🧩 Features
 
 - 📊 Compare snippets of code directly in your contracts
 - ✅ Compatible with any Solidity versions
 - 🔍 Supports function calls and contract deployments
 - 💯 Accurate gas cost (based on preprocessing)
-
-**PUT LIVE EXAMPLE HERE**
 
 ## 📦 Installation
 
@@ -81,7 +81,6 @@ The last step is simply to write your deployment script and to tell Marmite what
 
 ```typescript
 import hre, { ethers } from 'hardhat';
-import { ContractTransaction } from 'ethers';
 
 // Imports the `marmite` context function
 import marmite from '@primitivefi/hardhat-marmite';
@@ -99,7 +98,7 @@ async function main() {
         const foo = await Foo.deploy();
 
         // Calls the function `set` from the `Foo` contract
-        const tx = await foo.set(42) as ContractTransaction;
+        const tx = await foo.set(42);
 
         // Flags the transaction
         await flag('set', tx);
@@ -127,7 +126,14 @@ Marmite will then compile your contracts, deploy them and measure your flagged t
 
 ![Results](https://i.imgur.com/YMlQcVF.png)
 
+## 🖼 Examples
+
+If you are looking for examples, check out:
+- How to compare an if condition (Contract file here and deployment script here)
+- How to compare
+
 ## ⛑ Help
 
 Feel free to open an issue if you need help or if you encounter a problem! Here are some already known problems though:
 - Naming a flag `constructor` might create a JavaScript issue, thus avoid writing `await flag('constructor', tx);` for now
+- Compiling your contracts using `npx hardhat compile` might not work if Marmite tags are still present in your code
