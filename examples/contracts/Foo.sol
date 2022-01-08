@@ -5,13 +5,13 @@ contract Foo {
     uint256 public bar;
 
     function set(uint256 newBar) external {
-        @start:Different-from
+        @start<Different-from>
         if (newBar != 0) {
             bar = newBar;
         }
         @end
 
-        @start:Greater-than
+        @start<Greater-than>
         if (newBar > 0) {
             bar = newBar;
         }
