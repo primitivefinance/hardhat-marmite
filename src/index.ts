@@ -10,19 +10,20 @@ task('golf:script', 'Runs a gas cost comparison using a script')
     await runScript(args.path);
   });
 
-task('golf:contract', 'Runs a gas cost comparison on a contract')
+task('golf:contract', 'Runs a gas cost comparison using a contract')
   .addPositionalParam('contract', 'Name of the contract')
-  .addOptionalParam('constructorParams', 'Constructor params', undefined, types.string)
-  .addParam('func', 'Func to call')
-  .addOptionalParam('params', 'params', undefined, types.string)
+  .addOptionalParam('ctorParams', 'Constructor parameters', undefined, types.string)
+  .addParam('func', 'Function to call')
+  .addOptionalParam('params', 'Function parameters', undefined, types.string)
+  .addOptionalParam('impls', 'Name of the implementations to compare', undefined, types.string)
   .setAction(async (args, hre) => {
-    await marmite(hre, ['Different-from', 'Greater-than'], async (flag) => {
+    await marmite(hre, async (flag) => {
       const Factory = await hre.ethers.getContractFactory(args.contract);
 
       let contract: Contract;
 
-      if (args.constructorParams !== undefined) {
-        contract = await Factory.deploy(...args.ctorparams.split(','));
+      if (args.ctorParams !== undefined) {
+        contract = await Factory.deploy(...args.ctorParams.split(','));
       } else {
         contract = await Factory.deploy();
       }
@@ -36,5 +37,5 @@ task('golf:contract', 'Runs a gas cost comparison on a contract')
       }
 
       await flag(args.func, tx);
-    });
+    }, args.impls !== undefined ? args.impls.split(',') : []);
   });

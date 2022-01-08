@@ -35,13 +35,29 @@ export function checkMinOrMax(values: number[], value: number): Table.Cell {
  */
 export async function marmite(
   hre: HardhatRuntimeEnvironment,
-  implementations: string[],
   script: ScriptFunction,
+  implementations: string[] = [],
 ): Promise<void> {
   const entries = await fg('**/*.sol', {
     absolute: false,
     onlyFiles: true,
   });
+
+  let foundImplementations: string[] = [];
+
+  if (implementations.length === 0) {
+    for (let i = 0; i < entries.length; i += 1) {
+      const source = await fs.promises.readFile(entries[i], {
+        encoding: 'utf-8',
+      });
+
+      const matches = source.match(/@start<([\s\S]*?)>/g) || [];
+      const impls = matches.map((match) => match.replace('@start<', '').replace('>', ''));
+      foundImplementations.push(...impls);
+    }
+  } else {
+    foundImplementations = implementations;
+  }
 
   const sources = path.relative(process.cwd(), hre.config.paths.sources);
 
@@ -62,8 +78,8 @@ export async function marmite(
 
   const gasReport: GasReport = {};
 
-  for (let i = 0; i < implementations.length; i += 1) {
-    const currentImplementation = implementations[i];
+  for (let i = 0; i < foundImplementations.length; i += 1) {
+    const currentImplementation = foundImplementations[i];
 
     await fs.promises.rm('.gas', {
       recursive: true,
@@ -84,7 +100,7 @@ export async function marmite(
         }
       }
 
-      newSource = newSource.replace(`@start:${currentImplementation}`, '');
+      newSource = newSource.replace(`@start<${currentImplementation}>`, '');
       newSource = newSource.replace('@end', '');
 
       await fs.promises.mkdir(path.join('.gas', path.dirname(entries[j])), {
@@ -110,13 +126,13 @@ export async function marmite(
       '',
       {
         content: `🥘 ${'Implementations'.magenta.bold}`,
-        colSpan: implementations.length,
+        colSpan: foundImplementations.length,
         hAlign: 'center',
       },
     ],
     [
       { content: colors.bold('🚩 Flags'.blue), colSpan: 1 },
-      ...implementations.map((impl) => colors.bold(impl.magenta)),
+      ...foundImplementations.map((impl) => colors.bold(impl.magenta)),
     ],
     [
       Object.keys(gasReport)[0].blue,
