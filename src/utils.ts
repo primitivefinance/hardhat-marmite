@@ -67,7 +67,7 @@ export async function marmite(
   hre.config.paths.cache = path.join(process.cwd(), '.gas', 'cache');
 
   const table = new Table({
-    rowHeights: [3],
+    rowHeights: [1],
     rowAligns: ['center'],
     style: {
       'padding-left': 4,
@@ -123,9 +123,9 @@ export async function marmite(
 
   table.push(
     [
-      '',
+      ' ',
       {
-        content: `🥘 ${'Implementations'.magenta.bold}`,
+        content: `📝 ${'Implementations'.magenta.bold}`,
         colSpan: foundImplementations.length,
         hAlign: 'center',
       },
@@ -147,7 +147,17 @@ export async function marmite(
     ]),
   );
 
+  console.log(
+    '\nDisplaying the results for',
+    `${Object.keys(gasReport).length} flag(s)`.blue,
+    'with',
+    `${foundImplementations.length} implementation(s):`.magenta,
+    '\n',
+  );
+
   console.log(table.toString());
+
+  console.log('\n');
 
   await fs.promises.rm('.gas', {
     recursive: true,
