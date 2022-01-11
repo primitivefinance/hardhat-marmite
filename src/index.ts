@@ -4,6 +4,8 @@ import { task, types } from 'hardhat/config';
 import runScript from './runner';
 import marmite from './marmite';
 
+export = marmite;
+
 task('golf:script', 'Runs a gas cost comparison using a script')
   .addPositionalParam('path', 'Path to the script')
   .setAction(async (args) => {
