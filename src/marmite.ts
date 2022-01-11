@@ -95,18 +95,9 @@ export default async function marmite(
     });
   }
 
+  console.log('\n');
   const table = renderTable(gasReport, foundImplementations);
-
-  console.log(
-    '\nDisplaying the results for',
-    `${Object.keys(gasReport).length} flag(s)`.blue,
-    'with',
-    `${foundImplementations.length} implementation(s):`.magenta,
-    '\n',
-  );
-
   console.log(table.toString());
-
   console.log('\n');
 
   await fs.promises.rm('.gas', {
