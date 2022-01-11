@@ -4,7 +4,6 @@ import path from 'path';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import fg from 'fast-glob';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import Table from 'cli-table3';
 import colors from 'colors';
 import { ContractTransaction } from 'ethers';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
