@@ -1,166 +1,148 @@
-/* eslint-disable no-param-reassign, no-await-in-loop */
-import fs from 'fs';
-import path from 'path';
-import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
-import fg from 'fast-glob';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import Table from 'cli-table3';
+/* eslint-disable import/prefer-default-export */
 import colors from 'colors';
-import { ContractTransaction } from 'ethers';
-import { TransactionResponse } from '@ethersproject/abstract-provider';
 
-import { ScriptFunction, GasReport } from './types';
+import { TableChars, GasReport } from './types';
 
-export function checkMinOrMax(values: number[], value: number): Table.Cell {
+export function checkMinOrMax(values: number[], value: number): string {
   if (Math.max(...values) === value) {
-    return {
-      content: colors.red(value.toString()),
-    };
+    return colors.red(value.toString());
   }
 
   if (Math.min(...values) === value) {
-    return {
-      content: colors.green(value.toString()),
-    };
+    return colors.green(value.toString());
   }
 
-  return value.toString().dim;
+  return colors.dim(value.toString());
 }
 
-/**
- * Marmite context function
- * @param hre Hardhat global variable
- * @param implementations Array of implementations to compare
- * @param script Function deploying contracts and flagging transactions
- */
-export async function marmite(
-  hre: HardhatRuntimeEnvironment,
-  script: ScriptFunction,
-  implementations: string[] = [],
-): Promise<void> {
-  const entries = await fg('**/*.sol', {
-    absolute: false,
-    onlyFiles: true,
-  });
+const defaultTableChars: TableChars = {
+  leftTopCorner: '┌',
+  rightTopCorner: '┐',
+  rightBottomCorner: '┘',
+  leftBottomCorner: '└',
+  middle: '┼',
+  bottomMiddle: '┴',
+  leftMiddle: '├',
+  rightMiddle: '┤',
+  column: '│',
+  line: '─',
+};
 
-  let foundImplementations: string[] = [];
+export function renderTable(
+  gasReport: GasReport,
+  implementations: string[],
+  padding: number = 4,
+  tableChars: TableChars = defaultTableChars,
+  implementationsTitle: string = ' 📝 Implementations ',
+  flagsTitle: string = ' 🚩 Flags ',
+): string {
+  const flags = Object.keys(gasReport);
+  let flagsColSize = flagsTitle.length + padding * 2;
 
-  if (implementations.length === 0) {
-    for (let i = 0; i < entries.length; i += 1) {
-      const source = await fs.promises.readFile(entries[i], {
-        encoding: 'utf-8',
-      });
+  for (let i = 0; i < flags.length; i += 1) {
+    const checkSize = flags[i].length + padding * 2;
 
-      const matches = source.match(/@start<([\s\S]*?)>/g) || [];
-      const impls = matches.map((match) => match.replace('@start<', '').replace('>', ''));
-      foundImplementations.push(...impls);
+    if (checkSize > flagsColSize) {
+      flagsColSize = checkSize;
     }
-  } else {
-    foundImplementations = implementations;
   }
 
-  const sources = path.relative(process.cwd(), hre.config.paths.sources);
+  let implementationsTitleColSize = implementationsTitle.length + padding * 2;
+  const implementationsColSizes: {[key: number]: number} = {};
 
-  hre.config.paths.root = path.join(process.cwd(), '.gas');
-  hre.config.paths.sources = path.join(process.cwd(), '.gas', sources);
-  hre.config.paths.artifacts = path.join(process.cwd(), '.gas', 'artifacts');
-  hre.config.paths.cache = path.join(process.cwd(), '.gas', 'cache');
-
-  const table = new Table({
-    rowHeights: [1],
-    rowAligns: ['center'],
-    style: {
-      'padding-left': 4,
-      'padding-right': 4,
-    },
-    colAligns: ['center'],
-  });
-
-  const gasReport: GasReport = {};
-
-  for (let i = 0; i < foundImplementations.length; i += 1) {
-    const currentImplementation = foundImplementations[i];
-
-    await fs.promises.rm('.gas', {
-      recursive: true,
-      force: true,
-    });
-
-    for (let j = 0; j < entries.length; j += 1) {
-      const source = await fs.promises.readFile(entries[j], {
-        encoding: 'utf-8',
-      });
-
-      const matches = source.match(/@start([\s\S]*?)@end/g) || [];
-      let newSource: string = source;
-
-      for (let k = 0; k < matches.length; k += 1) {
-        if (matches[k].includes(currentImplementation) === false) {
-          newSource = newSource.replace(matches[k], '');
-        }
-      }
-
-      newSource = newSource.replace(`@start<${currentImplementation}>`, '');
-      newSource = newSource.replace('@end', '');
-
-      await fs.promises.mkdir(path.join('.gas', path.dirname(entries[j])), {
-        recursive: true,
-      });
-
-      await fs.promises.writeFile(path.join('.gas', entries[j]), newSource, {
-        encoding: 'utf-8',
-      });
-    }
-
-    await hre.run(TASK_COMPILE);
-
-    await script(async (name: string, tx: ContractTransaction | TransactionResponse) => {
-      const receipt = await tx.wait();
-      if (gasReport[name] === undefined) gasReport[name] = [];
-      gasReport[name].push(receipt.cumulativeGasUsed.toNumber());
-    });
+  for (let i = 0; i < implementations.length; i += 1) {
+    const size = implementations[i].length + padding * 2;
+    implementationsColSizes[i] = size;
   }
 
-  table.push(
-    [
-      ' ',
-      {
-        content: `📝 ${'Implementations'.magenta.bold}`,
-        colSpan: foundImplementations.length,
-        hAlign: 'center',
-      },
-    ],
-    [
-      { content: colors.bold('🚩 Flags'.blue), colSpan: 1 },
-      ...foundImplementations.map((impl) => colors.bold(impl.magenta)),
-    ],
-    [
-      Object.keys(gasReport)[0].blue,
-      ...gasReport[Object.keys(gasReport)[0]].map((gas) => checkMinOrMax(
-        gasReport[Object.keys(gasReport)[0]],
-        gas,
-      )),
-    ],
-    ...Object.keys(gasReport).slice(1).map((flag) => [
-      flag.blue,
-      ...gasReport[flag].map((gas) => checkMinOrMax(gasReport[flag], gas)),
-    ]),
-  );
+  for (let i = 0; i < flags.length; i += 1) {
+    for (let j = 0; j < gasReport[flags[i]].length; j += 1) {
+      const size = gasReport[flags[i]][j].toString().length + padding * 2;
 
-  console.log(
-    '\nDisplaying the results for',
-    `${Object.keys(gasReport).length} flag(s)`.blue,
-    'with',
-    `${foundImplementations.length} implementation(s):`.magenta,
-    '\n',
-  );
+      if (size > implementationsColSizes[j]) implementationsColSizes[j] = size;
+    }
+  }
 
-  console.log(table.toString());
+  let checkSize = 0;
 
-  console.log('\n');
+  for (let i = 0; i < implementations.length; i += 1) {
+    checkSize += implementationsColSizes[i];
+  }
 
-  await fs.promises.rm('.gas', {
-    recursive: true,
-    force: true,
-  });
+  checkSize += implementations.length - 1;
+
+  if (checkSize > implementationsTitleColSize) {
+    implementationsTitleColSize = checkSize;
+  }
+
+  let output = ' '.repeat(flagsColSize + 1);
+  output += tableChars.leftTopCorner;
+
+  const titlePadding = implementationsTitleColSize - implementationsTitle.length;
+
+  output += tableChars.line.repeat(titlePadding / 2);
+  output += implementationsTitle;
+  output += tableChars.line.repeat(Math.ceil(titlePadding / 2));
+  output += tableChars.rightTopCorner;
+  output += '\n';
+  output += ' '.repeat(flagsColSize + 1);
+  output += tableChars.column;
+
+  for (let i = 0; i < implementations.length; i += 1) {
+    output += ' '.repeat((implementationsColSizes[i] - implementations[i].length) / 2);
+    output += implementations[i];
+    output += ' '.repeat(Math.ceil((implementationsColSizes[i] - implementations[i].length) / 2));
+    output += tableChars.column;
+  }
+
+  output += '\n';
+  output += tableChars.leftTopCorner;
+  output += tableChars.line.repeat((flagsColSize - flagsTitle.length) / 2);
+  output += flagsTitle;
+  output += tableChars.line.repeat(Math.ceil((flagsColSize - flagsTitle.length) / 2));
+  output += tableChars.middle;
+
+  for (let i = 0; i < implementations.length; i += 1) {
+    output += tableChars.line.repeat(implementationsColSizes[i]);
+    output += tableChars.middle;
+  }
+
+  output = output.slice(0, -1);
+  output += tableChars.rightMiddle;
+  output += '\n';
+
+  for (let i = 0; i < flags.length; i += 1) {
+    const flagsPadding = flagsColSize - flags[i].length;
+
+    output += tableChars.column;
+    output += ' '.repeat(flagsPadding / 2);
+    output += flags[i];
+    output += ' '.repeat(Math.ceil(flagsPadding / 2));
+    output += tableChars.column;
+
+    for (let j = 0; j < implementations.length; j += 1) {
+      const colPadding = implementationsColSizes[j] - gasReport[flags[i]][j].toString().length;
+
+      output += ' '.repeat(colPadding / 2);
+      output += checkMinOrMax(gasReport[flags[i]], gasReport[flags[i]][j]);
+      output += ' '.repeat(Math.ceil(colPadding / 2));
+      output += tableChars.column;
+    }
+
+    output += '\n';
+  }
+
+  output += tableChars.leftBottomCorner;
+  output += tableChars.line.repeat(flagsColSize);
+  output += tableChars.bottomMiddle;
+
+  for (let i = 0; i < implementations.length; i += 1) {
+    output += tableChars.line.repeat(implementationsColSizes[i]);
+    output += tableChars.bottomMiddle;
+  }
+
+  output = output.slice(0, -1);
+  output += tableChars.rightBottomCorner;
+
+  return output;
 }

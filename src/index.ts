@@ -2,7 +2,7 @@ import { Contract } from 'ethers';
 import { task, types } from 'hardhat/config';
 
 import runScript from './runner';
-import { marmite } from './utils';
+import marmite from './marmite';
 
 task('golf:script', 'Runs a gas cost comparison using a script')
   .addPositionalParam('path', 'Path to the script')
