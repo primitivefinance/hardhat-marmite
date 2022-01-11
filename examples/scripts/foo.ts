@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import hre, { ethers } from 'hardhat';
 
-import { marmite } from '../../src/utils';
+import marmite from '../../src';
 
 async function main() {
   await marmite(hre, async (flag) => {
