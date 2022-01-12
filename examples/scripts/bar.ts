@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import hre from 'hardhat';
 
 import marmite from '../../src';
