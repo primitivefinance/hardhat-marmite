@@ -122,9 +122,9 @@ This example is showcasing the important steps to write a script:
 2. Pass the `hre` (Hardhat Runtime Environment) variable to the context function, along with a callback function deploying your contracts and executing your transactions
 3. A `flag` function is provided to your callback function as a parameter, use it to pin a transaction whenever you are interested in having its gas cost compared in the final results
 
-Here is a quick API:
+Here is a quick API describing these two functions:
 
-#### 🥘 `marmite` function
+#### 🥘 `marmite`
 
 ```typescript
 /**
@@ -141,7 +141,7 @@ export default async function marmite(
 ): Promise<void>
 ```
 
-#### 🚩 `flag` function
+#### 🚩 `flag`
 
 ```typescript
 /**
@@ -151,6 +151,14 @@ export default async function marmite(
  */
 export type FlagFunction = (name: string, tx: ContractTransaction | TransactionResponse) => void;
 ```
+
+Once your script is ready, you can run:
+
+```bash
+npx hardhat golf:script ./path/to/yourScript.ts
+```
+
+This task only takes one unnamed parameter, which is the path to your script, e. g. `./examples/scripts/foo.ts`.
 
 ## 🔧 Config
 
