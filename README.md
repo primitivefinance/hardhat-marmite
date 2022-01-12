@@ -4,7 +4,7 @@
 
 > Hassle-free Hardhat plugin to compare gas cost among different Solidity code snippets.
 
-![Demo](./demo.gif)
+![Demo](./gifs/demo.gif)
 
 ## 🧩 Features
 
@@ -85,6 +85,8 @@ Standalone contracts and unique function calls can be quickly *gas golf-ed* usin
 npx hardhat golf:contract --contract Foo --func set --params 42
 ```
 
+![golf:contract](./gifs/contract.gif)
+
 This will tell Marmite to deploy the contract `Foo` and call the function `set` with the parameter `42`. Note that since no implementation names were specified, Marmite will naively measure all of them.
 
 Here are all the options of the `golf:contract` task:
@@ -157,6 +159,8 @@ Once your script is ready, you can run:
 ```bash
 npx hardhat golf:script ./path/to/yourScript.ts
 ```
+
+![golf:script](./gifs/script.gif)
 
 This task only takes one unnamed parameter, which is the path to your script, e. g. `./examples/scripts/foo.ts`.
 
