@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import colors from 'colors';
 
 import { TableChars, GasReport } from './types';
