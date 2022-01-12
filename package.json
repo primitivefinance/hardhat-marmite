@@ -1,7 +1,7 @@
 {
   "name": "@primitivefi/hardhat-marmite",
-  "version": "0.0.2",
-  "description": "Flexible Hardhat plugin to run gas cost comparisons among different Solidity code snippets",
+  "version": "0.0.3",
+  "description": "Hassle-free Hardhat plugin to compare gas cost among different Solidity code snippets",
   "repository": "github:primitivefinance/hardhat-marmite",
   "author": "Primitive",
   "license": "MIT",
