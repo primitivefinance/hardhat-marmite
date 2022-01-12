@@ -26,9 +26,7 @@
   ],
   "peerDependencies": {
     "hardhat": "^2.6.4",
-    "@types/cli-table": "^0.3.0",
-    "cli-table3": "^0.6.0",
-    "colors": "^1.4.0",
+    "colors": "1.4.0",
     "fast-glob": "^3.2.7"
   },
   "devDependencies": {
@@ -51,9 +49,7 @@
   },
   "dependencies": {
     "hardhat": "^2.6.4",
-    "@types/cli-table": "^0.3.0",
-    "cli-table3": "^0.6.0",
-    "colors": "^1.4.0",
+    "colors": "1.4.0",
     "fast-glob": "^3.2.7"
   }
 }

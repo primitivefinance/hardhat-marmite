@@ -1,16 +1,16 @@
 /* eslint-disable import/prefer-default-export */
-import hre, { ethers } from 'hardhat';
+import hre from 'hardhat';
 
 import marmite from '../../src';
 
 async function main() {
-  await marmite(hre, ['Different-from', 'Greater-than'], async (flag) => {
-    const Foo = await ethers.getContractFactory('Foo');
+  await marmite(hre, async (flag) => {
+    const Foo = await hre.ethers.getContractFactory('Foo');
     const foo = await Foo.deploy();
 
     const tx = await foo.set(42);
     await flag('set', tx);
-  });
+  }, ['Different-from', 'Greater-than']);
 }
 
 main()

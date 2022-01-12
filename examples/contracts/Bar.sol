@@ -2,7 +2,7 @@
 pragma solidity 0.8.9;
 
 contract Bar {
-    @start:Non-immutable
+    @start<Non-immutable>
     uint256 public foo;
 
     constructor(uint256 foo_) {
@@ -10,7 +10,7 @@ contract Bar {
     }
     @end
 
-    @start:Immutable
+    @start<Immutable>
     uint256 immutable public foo;
 
     constructor(uint256 foo_) {

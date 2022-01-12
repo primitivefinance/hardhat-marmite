@@ -1,134 +1,43 @@
-/* eslint-disable no-param-reassign, no-await-in-loop */
+import { Contract } from 'ethers';
+import { task, types } from 'hardhat/config';
 
-import fs from 'fs';
-import path from 'path';
-import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
-import { task } from 'hardhat/config';
-import fg from 'fast-glob';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import Table from 'cli-table3';
-import colors from 'colors';
-import { ContractTransaction } from 'ethers';
-import { TransactionResponse } from '@ethersproject/abstract-provider';
-
-import { ScriptFunction, GasReport } from './types';
 import runScript from './runner';
-import { checkMinOrMax } from './utils';
+import marmite from './marmite';
 
-task('marmite', 'Run gas cost comparisons among different Solidity code snippets')
-  .addParam('script', 'Path to the script to run')
+export = marmite;
+
+task('golf:script', 'Runs a gas cost comparison using a script')
+  .addPositionalParam('path', 'Path to the script')
   .setAction(async (args) => {
-    await runScript(args.script);
+    await runScript(args.path);
   });
 
-/**
- * Marmite context function
- * @param hre Hardhat global variable
- * @param implementations Array of implementations to compare
- * @param script Function deploying contracts and flagging transactions
- */
-export default async function marmite(
-  hre: HardhatRuntimeEnvironment,
-  implementations: string[],
-  script: ScriptFunction,
-): Promise<void> {
-  const entries = await fg('**/*.sol', {
-    absolute: false,
-    onlyFiles: true,
-  });
+task('golf:contract', 'Runs a gas cost comparison using a contract')
+  .addParam('contract', 'Name of the contract')
+  .addOptionalParam('ctorParams', 'Constructor parameters', undefined, types.string)
+  .addParam('func', 'Function to call')
+  .addOptionalParam('params', 'Function parameters', undefined, types.string)
+  .addOptionalParam('impls', 'Name of the implementations to compare', undefined, types.string)
+  .setAction(async (args, hre) => {
+    await marmite(hre, async (flag) => {
+      const Factory = await hre.ethers.getContractFactory(args.contract);
 
-  const sources = path.relative(process.cwd(), hre.config.paths.sources);
+      let contract: Contract;
 
-  hre.config.paths.root = path.join(process.cwd(), '.gas');
-  hre.config.paths.sources = path.join(process.cwd(), '.gas', sources);
-  hre.config.paths.artifacts = path.join(process.cwd(), '.gas', 'artifacts');
-  hre.config.paths.cache = path.join(process.cwd(), '.gas', 'cache');
-
-  const table = new Table({
-    rowHeights: [3],
-    rowAligns: ['center'],
-    style: {
-      'padding-left': 4,
-      'padding-right': 4,
-    },
-    colAligns: ['center'],
-  });
-
-  const gasReport: GasReport = {};
-
-  for (let i = 0; i < implementations.length; i += 1) {
-    const currentImplementation = implementations[i];
-
-    await fs.promises.rm('.gas', {
-      recursive: true,
-      force: true,
-    });
-
-    for (let j = 0; j < entries.length; j += 1) {
-      const source = await fs.promises.readFile(entries[j], {
-        encoding: 'utf-8',
-      });
-
-      const matches = source.match(/@start([\s\S]*?)@end/g) || [];
-      let newSource: string = source;
-
-      for (let k = 0; k < matches.length; k += 1) {
-        if (matches[k].includes(currentImplementation) === false) {
-          newSource = newSource.replace(matches[k], '');
-        }
+      if (args.ctorParams !== undefined) {
+        contract = await Factory.deploy(...args.ctorParams.split(','));
+      } else {
+        contract = await Factory.deploy();
       }
 
-      newSource = newSource.replace(`@start:${currentImplementation}`, '');
-      newSource = newSource.replace('@end', '');
+      let tx: any;
 
-      await fs.promises.mkdir(path.join('.gas', path.dirname(entries[j])), {
-        recursive: true,
-      });
+      if (args.params !== undefined) {
+        tx = await contract[args.func](...args.params.split(','));
+      } else {
+        tx = await contract[args.func]();
+      }
 
-      await fs.promises.writeFile(path.join('.gas', entries[j]), newSource, {
-        encoding: 'utf-8',
-      });
-    }
-
-    await hre.run(TASK_COMPILE);
-
-    await script(async (name: string, tx: ContractTransaction | TransactionResponse) => {
-      const receipt = await tx.wait();
-      if (gasReport[name] === undefined) gasReport[name] = [];
-      gasReport[name].push(receipt.cumulativeGasUsed.toNumber());
-    });
-  }
-
-  table.push(
-    [
-      '',
-      {
-        content: `🥘 ${'Implementations'.magenta.bold}`,
-        colSpan: implementations.length,
-        hAlign: 'center',
-      },
-    ],
-    [
-      { content: colors.bold('🚩 Flags'.blue), colSpan: 1 },
-      ...implementations.map((impl) => colors.bold(impl.magenta)),
-    ],
-    [
-      Object.keys(gasReport)[0].blue,
-      ...gasReport[Object.keys(gasReport)[0]].map((gas) => checkMinOrMax(
-        gasReport[Object.keys(gasReport)[0]],
-        gas,
-      )),
-    ],
-    ...Object.keys(gasReport).slice(1).map((flag) => [
-      flag.blue,
-      ...gasReport[flag].map((gas) => checkMinOrMax(gasReport[flag], gas)),
-    ]),
-  );
-
-  console.log(table.toString());
-
-  await fs.promises.rm('.gas', {
-    recursive: true,
-    force: true,
+      await flag(args.func, tx);
+    }, args.impls !== undefined ? args.impls.split(',') : []);
   });
-}
