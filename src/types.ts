@@ -1,9 +1,14 @@
 import { ContractTransaction } from 'ethers';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 
+/**
+ * Flags a transaction
+ * @param name Name of the flag
+ * @param tx Transaction to flag
+ */
 export type FlagFunction = (name: string, tx: ContractTransaction | TransactionResponse) => void;
 
-export type ScriptFunction = (flag: FlagFunction) => void;
+export type CallbackFunction = (flag: FlagFunction) => void;
 
 export type GasReport = {
   [key: string]: number[];

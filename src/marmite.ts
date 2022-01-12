@@ -8,18 +8,19 @@ import colors from 'colors';
 import { ContractTransaction } from 'ethers';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 
-import { ScriptFunction, GasReport } from './types';
+import { CallbackFunction, GasReport } from './types';
 import { renderTable } from './utils';
 
 /**
  * Marmite context function
- * @param hre Hardhat global variable
- * @param implementations Array of implementations to compare
- * @param script Function deploying contracts and flagging transactions
+ * @param hre Hardhat Runtime Environment variable
+ * @param callback Function deploying contracts and flagging transactions
+ * @param implementations (optional) Array of implementation names to compare, omitting
+ *                        this parameter will compare all the found implementations
  */
 export default async function marmite(
   hre: HardhatRuntimeEnvironment,
-  script: ScriptFunction,
+  callback: CallbackFunction,
   implementations: string[] = [],
 ): Promise<void> {
   const entries = await fg('**/*.sol', {
@@ -88,7 +89,7 @@ export default async function marmite(
 
     await hre.run(TASK_COMPILE);
 
-    await script(async (name: string, tx: ContractTransaction | TransactionResponse) => {
+    await callback(async (name: string, tx: ContractTransaction | TransactionResponse) => {
       const receipt = await tx.wait();
       if (gasReport[name] === undefined) gasReport[name] = [];
       gasReport[name].push(receipt.cumulativeGasUsed.toNumber());
