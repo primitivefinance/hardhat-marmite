@@ -1,11 +1,11 @@
 /* eslint-disable import/prefer-default-export */
-import hre, { ethers } from 'hardhat';
+import hre from 'hardhat';
 
 import marmite from '../../src';
 
 async function main() {
   await marmite(hre, async (flag) => {
-    const Foo = await ethers.getContractFactory('Foo');
+    const Foo = await hre.ethers.getContractFactory('Foo');
     const foo = await Foo.deploy();
 
     const tx = await foo.set(42);
