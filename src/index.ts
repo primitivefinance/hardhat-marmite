@@ -13,7 +13,7 @@ task('golf:script', 'Runs a gas cost comparison using a script')
   });
 
 task('golf:contract', 'Runs a gas cost comparison using a contract')
-  .addPositionalParam('contract', 'Name of the contract')
+  .addParam('contract', 'Name of the contract')
   .addOptionalParam('ctorParams', 'Constructor parameters', undefined, types.string)
   .addParam('func', 'Function to call')
   .addOptionalParam('params', 'Function parameters', undefined, types.string)
