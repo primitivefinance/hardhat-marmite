@@ -36,7 +36,7 @@ export default async function marmite(
         encoding: 'utf-8',
       });
 
-      const matches = source.match(/@start<([\s\S]*?)>/g) || [];
+      const matches = source.match(/@start:?<([\s\S]*?)>/g) || [];
       const impls = matches.map((match) => match.replace('@start<', '').replace('>', ''));
       foundImplementations.push(...impls);
     }
@@ -66,7 +66,7 @@ export default async function marmite(
         encoding: 'utf-8',
       });
 
-      const matches = source.match(/@start([\s\S]*?)@end/g) || [];
+      const matches = source.match(/@start:?([\s\S]*?)@end/g) || [];
       let newSource: string = source;
 
       for (let k = 0; k < matches.length; k += 1) {
@@ -75,7 +75,7 @@ export default async function marmite(
         }
       }
 
-      newSource = newSource.replace(`@start<${currentImplementation}>`, '');
+      newSource = newSource.replace(new RegExp("@start:?<" + currentImplementation + ">"),'');
       newSource = newSource.replace('@end', '');
 
       await fs.promises.mkdir(path.join('.gas', path.dirname(entries[j])), {
