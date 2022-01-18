@@ -66,7 +66,7 @@ contract Foo {
         @end
 
         // Declaring our second implementation
-        @start:<Greater-than>
+        @start<Greater-than>
         if (newBar > 0) {
             bar = newBar;
         }
