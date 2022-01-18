@@ -6,9 +6,9 @@ import { TransactionResponse } from '@ethersproject/abstract-provider';
  * @param name Name of the flag
  * @param tx Transaction to flag
  */
-export type FlagFunction = (name: string, tx: ContractTransaction | TransactionResponse) => void;
+export type FlagFunction = (name: string, tx: ContractTransaction | TransactionResponse) => Promise<void>;
 
-export type CallbackFunction = (flag: FlagFunction) => void;
+export type CallbackFunction = (flag: FlagFunction) => Promise<void>;
 
 export type GasReport = {
   [key: string]: number[];
