@@ -36,7 +36,7 @@ export default async function marmite(
         encoding: 'utf-8',
       });
 
-      const matches = source.match(/@start<([\s\S]*?)>/g) || [];
+      const matches = source.match(/@start:?<([\s\S]*?)>/g) || [];
       const impls = matches.map((match) => match.replace('@start<', '').replace('>', ''));
       foundImplementations.push(...impls);
     }
